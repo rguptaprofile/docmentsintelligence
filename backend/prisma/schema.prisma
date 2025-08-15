@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents Document[]
+  queries   Query[]
+
+  @@map("users")
+}
+
+model Document {
+  id         String   @id @default(cuid())
+  name       String
+  type       String
+  size       Int
+  uploadedAt DateTime @default(now())
+  status     String   @default("processing") // processing, ready, error
+  content    String?
+  filePath   String?
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  clauses Clause[]
+
+  @@map("documents")
+}
+
+model Query {
+  id             String   @id @default(cuid())
+  text           String
+  timestamp      DateTime @default(now())
+  status         String   @default("processing") // processing, completed, error
+  decision       String?  // approved, rejected, pending, requires_review
+  amount         Float?
+  currency       String?
+  justification  String?
+  confidence     Float?
+  processingTime Int?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  queryResults QueryResult[]
+
+  @@map("queries")
+}
+
+model Clause {
+  id             String  @id @default(cuid())
+  text           String
+  section        String?
+  page           Int?
+  relevanceScore Float?
+
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  queryResults QueryResult[]
+
+  @@map("clauses")
+}
+
+model QueryResult {
+  id             String @id @default(cuid())
+  relevanceScore Float
+
+  queryId String
+  query   Query  @relation(fields: [queryId], references: [id], onDelete: Cascade)
+
+  clauseId String
+  clause   Clause @relation(fields: [clauseId], references: [id], onDelete: Cascade)
+
+  @@map("query_results")
+}

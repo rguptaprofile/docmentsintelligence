@@ -1,0 +1,4 @@
+/* Ensure you are using Tailwind CSS with a compatible build tool like PostCSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
